@@ -128,7 +128,7 @@ const UserProfileForm: React.FC<Props> = ({
           <LoadingButton />
         ) : (
           <Button type="submit" className="bg-orange-500 mt-4">
-            Submit
+            Update
           </Button>
         )}
       </form>
