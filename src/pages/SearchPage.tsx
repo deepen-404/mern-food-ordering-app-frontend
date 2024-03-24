@@ -7,7 +7,7 @@ import SearchResultInfo from "@/components/SearchResultInfo";
 import SortDropdown from "@/components/SortOptionDropdown";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 export type SearchStateT = {
   searchQuery: string;
@@ -36,7 +36,14 @@ const SearchPage = () => {
     );
   }
   if (!results?.data || !city) {
-    return <span>No results found</span>;
+    return (
+      <>
+        <span className="block">No results found</span>
+        <Link to="/" className="underline text-blue-500">
+          Click here to return to the home page
+        </Link>
+      </>
+    );
   }
 
   const setSelectedCuisines = (selectedCuisines: string[]) => {
@@ -87,7 +94,7 @@ const SearchPage = () => {
       <div id="main__content" className="flex flex-col gap-5">
         <SearchBar
           searchQuery={searchState.searchQuery}
-          placeholder="Search by Cusisine or Restaurant name "
+          placeholder="Search by Cuisine or Restaurant name "
           onSubmit={setSearchQuery}
           onReset={resetSearch}
         />

@@ -11,8 +11,8 @@ type SearchResultCardPropsT = {
 const SeachResultCard: React.FC<SearchResultCardPropsT> = ({ restaurant }) => {
   return (
     <Link
-      className="grid lg:grid-cols-[2fr_3fr] gap-5 group:"
-      to={`detail/${restaurant._id}`}
+      className="grid lg:grid-cols-[2fr_3fr] gap-5 group"
+      to={`/detail/${restaurant._id}`}
     >
       <AspectRatio ratio={16 / 6}>
         <img

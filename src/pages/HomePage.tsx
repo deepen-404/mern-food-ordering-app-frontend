@@ -19,8 +19,7 @@ const HomePage = () => {
         <span className="text-sm md:text-base">Food is just a click away!</span>
         <div className="w-3/4 mx-auto">
           <SearchBar
-            searchQuery=""
-            placeholder="Search by City or Town"
+            placeholder="Start by searching manchester (city)"
             onSubmit={handleSearchSubmit}
           />
         </div>

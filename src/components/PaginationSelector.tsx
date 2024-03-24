@@ -19,6 +19,8 @@ const PaginationSelector = ({ page, pages, onPageChange }: Props) => {
     pageNumbers.push(i);
   }
   console.log("the pageNumbers array is: ", pageNumbers);
+  console.log("the pageNumbers array length is: ", pageNumbers.length);
+
   console.log("the page is: ", page);
   return (
     <Pagination>
@@ -44,12 +46,11 @@ const PaginationSelector = ({ page, pages, onPageChange }: Props) => {
           </PaginationItem>
         ))}
 
-        {page !== pageNumbers.length ||
-          (pageNumbers.length === 0 && (
-            <PaginationItem>
-              <PaginationNext href="#" onClick={() => onPageChange(page + 1)} />
-            </PaginationItem>
-          ))}
+        {page !== pageNumbers.length && pageNumbers.length === 0 && (
+          <PaginationItem>
+            <PaginationNext href="#" onClick={() => onPageChange(page + 1)} />
+          </PaginationItem>
+        )}
       </PaginationContent>
     </Pagination>
   );
