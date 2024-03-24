@@ -25,8 +25,8 @@ const AuthProviderWithNavigate = ({
       domain={domain}
       clientId={clientId}
       authorizationParams={{
-        redirect_uri: redirectUri,
-        // redirect_uri: window.location.origin,
+        // redirect_uri: redirectUri,
+        redirect_uri: window.location.origin,
         audience,
       }}
       onRedirectCallback={onRedirectCallback}
