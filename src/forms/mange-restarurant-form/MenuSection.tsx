@@ -9,12 +9,13 @@ const MenuSection = () => {
     control,
     name: "menuItems",
   });
+
   return (
     <div className="space-y-2">
       <div>
         <h2 className="text-xl font-bold">Menu</h2>
         <FormDescription>
-          Create your menu and give each item a name and a price
+          Create your menu items with name, price, and an image for each item
         </FormDescription>
       </div>
       <FormField
@@ -24,7 +25,16 @@ const MenuSection = () => {
           <FormItem className="flex flex-col gap-2">
             {fields.map((_, index) => (
               <MenuItemInput
-                removeMenuItem={() => remove(index)}
+                key={index}
+                removeMenuItem={() => {
+                  // Clear localStorage when removing item
+                  const name = control._getWatch(`menuItems.${index}.name`);
+                  const price = control._getWatch(`menuItems.${index}.price`);
+                  if (name && price) {
+                    localStorage.removeItem(`menuItem_${name}_${price}`);
+                  }
+                  remove(index);
+                }}
                 index={index}
               />
             ))}
@@ -34,7 +44,9 @@ const MenuSection = () => {
       <Button
         type="button"
         onClick={() => append({ name: "", price: "" })}
-      >Add items</Button>
+      >
+        Add items
+      </Button>
     </div>
   );
 };

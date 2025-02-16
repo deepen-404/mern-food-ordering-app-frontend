@@ -3,19 +3,20 @@ import {
   useGetMyRestaurant,
   useGetMyRestaurantOrders,
   useUpdateMyRestaurant,
-} from "@/api/myRestaurantApi";
-import OrderItemCard from "@/components/OrderItemCard";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ManageRestaurantForms from "@/forms/mange-restarurant-form/ManageRestaurantForm";
-import { TabsContent } from "@radix-ui/react-tabs";
-import { Loader2 } from "lucide-react";
+} from '@/api/myRestaurantApi';
+import { DriverProvider } from '@/components/DriverJS/provider/DriverProvider';
+import OrderItemCard from '@/components/OrderItemCard';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DEFAULT_DRIVER_OPTIONS } from '@/config/DriverJS/DefaultDriverJSOptions';
+import { ORDER_MANAGEMENT_TUTORIAL_KEY } from '@/config/DriverJS/OrderManagementPage';
+import ManageRestaurantForms from '@/forms/mange-restarurant-form/ManageRestaurantForm';
+import { TabsContent } from '@radix-ui/react-tabs';
+import { Loader2 } from 'lucide-react';
 
 const ManageRestaurantPage = () => {
-  const { createRestaurant, isLoading: isCreateLoading } =
-    useCreateMyRestaurant();
+  const { createRestaurant, isLoading: isCreateLoading } = useCreateMyRestaurant();
   const { restaurant, isLoading: isGetLoading } = useGetMyRestaurant();
-  const { updateRestaurant, isLoading: isUpdateLoading } =
-    useUpdateMyRestaurant();
+  const { updateRestaurant, isLoading: isUpdateLoading } = useUpdateMyRestaurant();
   const { orders, isLoading: isOrdersLoading } = useGetMyRestaurantOrders();
 
   if (isGetLoading || isOrdersLoading) {
@@ -39,11 +40,14 @@ const ManageRestaurantPage = () => {
         className="space-y-5 bg-gray-50 border border-gray-900 shadow-sm p-10 rounded-lg"
       >
         <h2 className="text-lg font-semibold">
-          {orders?.length === 0 ? "No" : orders?.length} active orders
+          {orders?.length === 0 ? 'No' : orders?.length} active orders
         </h2>
-        {orders?.reverse().map((order) => (
-          <OrderItemCard order={order} />
-        ))}
+        <DriverProvider
+          tutorialKey={ORDER_MANAGEMENT_TUTORIAL_KEY}
+          driverOptions={{ ...DEFAULT_DRIVER_OPTIONS }}
+        >
+          {orders?.reverse().map((order) => <OrderItemCard key={order._id} order={order} />)}
+        </DriverProvider>
       </TabsContent>
       <TabsContent value="manage-restaurant">
         <ManageRestaurantForms

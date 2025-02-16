@@ -1,10 +1,14 @@
 import { useSearchRestaurant } from "@/api/restaurantApi";
 import CuisinesFilter from "@/components/CuisinesFilter";
+import { DriverStep } from "@/components/DriverJS/components/DriverStep";
+import { DriverProvider } from "@/components/DriverJS/provider/DriverProvider";
 import PaginationSelector from "@/components/PaginationSelector";
 import SearchBar, { SearchForm } from "@/components/SearchBar";
 import SeachResultCard from "@/components/SearchResultCard";
 import SearchResultInfo from "@/components/SearchResultInfo";
 import SortDropdown from "@/components/SortOptionDropdown";
+import { DEFAULT_DRIVER_OPTIONS } from "@/config/DriverJS/DefaultDriverJSOptions";
+import { RESTAURANT_PAGE_DRIVER_OPTIONS, RESTAURANT_PAGE_TUTORIAL_KEY } from "@/config/DriverJS/RestaurantListPage";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -82,6 +86,7 @@ const SearchPage = () => {
   };
 
   return (
+    <DriverProvider tutorialKey={RESTAURANT_PAGE_TUTORIAL_KEY} driverOptions={{...DEFAULT_DRIVER_OPTIONS, }}>
     <div className="grid gap-5 grid-cols-1 lg:grid-cols-[250px_1fr]">
       <div id="cuisines__list">
         <CuisinesFilter
@@ -92,22 +97,30 @@ const SearchPage = () => {
         />
       </div>
       <div id="main__content" className="flex flex-col gap-5">
-        <SearchBar
+      <DriverStep {...RESTAURANT_PAGE_DRIVER_OPTIONS['search-bar']}>
+      <SearchBar
           searchQuery={searchState.searchQuery}
           placeholder="Search by Cuisine or Restaurant name "
           onSubmit={setSearchQuery}
           onReset={resetSearch}
         />
+          </DriverStep>
         <div className="flex justify-between items-end lg:items-center flex-col gap-3 lg:flex-row ">
           <SearchResultInfo total={results.pagination.total} city={city} />
-          <SortDropdown
+         <DriverStep {...RESTAURANT_PAGE_DRIVER_OPTIONS['sort-options']}>
+         <SortDropdown
             sortOption={searchState.sortOption}
             onChange={(value) => setSortOption(value)}
           />
+         </DriverStep>
         </div>
-        {results.data.map((restaurant) => (
+        <DriverStep {...RESTAURANT_PAGE_DRIVER_OPTIONS['restaurant-list']}>
+       <div className="flex flex-col gap-5">
+       {results.data.map((restaurant) => (
           <SeachResultCard restaurant={restaurant} />
         ))}
+       </div>
+        </DriverStep>
         <PaginationSelector
           page={results.pagination.page}
           pages={results.pagination.pages}
@@ -115,6 +128,7 @@ const SearchPage = () => {
         />
       </div>
     </div>
+    </DriverProvider>
   );
 };
 

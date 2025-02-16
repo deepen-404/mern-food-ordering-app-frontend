@@ -2,6 +2,8 @@ import LandingImage from "../assets/landing.png";
 import AppDownloadImage from "../assets/appDownload.png";
 import SearchBar, { SearchForm } from "@/components/SearchBar";
 import { useNavigate } from "react-router-dom";
+import { DriverStep } from "@/components/DriverJS/components/DriverStep";
+import { LANDING_PAGE_DRIVER_OPTIONS } from "@/config/DriverJS/LandingPage";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -17,12 +19,14 @@ const HomePage = () => {
           Tuck into a takeaway today
         </h1>
         <span className="text-sm md:text-base">Food is just a click away!</span>
-        <div className="w-3/4 mx-auto">
+       <DriverStep {...LANDING_PAGE_DRIVER_OPTIONS['search-bar']}>
+       <div className="w-3/4 mx-auto">
           <SearchBar
             placeholder="Start by searching manchester (city)"
             onSubmit={handleSearchSubmit}
           />
         </div>
+       </DriverStep>
       </div>
       <div className="grid gap-5 md:grid-cols-2">
         <img src={LandingImage} alt="Landing Image" />

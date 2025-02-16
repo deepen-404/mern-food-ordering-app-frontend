@@ -21,7 +21,7 @@ const OrderStatusPage = () => {
 
   return (
     <div className="space-y-10">
-      {orders.map((order) => (
+      {orders.reverse().map((order) => (
         <div className="space-y-10 bg-gray-50 p-10 shadow-sm hover:shadow-md rounded-lg">
           <OrderStatusHeader order={order} />
           <div className="grid gap-10 md:grid-cols-2">

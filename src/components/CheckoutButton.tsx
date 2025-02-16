@@ -35,20 +35,20 @@ const CheckoutButton = ({ disabled, onCheckout,isLoading }: CheckoutButtonPropsT
 
   if (!isAuthenticated) {
     return (
-      <Button onClick={onLogin} className="bg-orange-500 flex-1">
+      <Button onClick={onLogin} className="bg-orange-500 flex-1 w-full">
         Login to Checkout
       </Button>
     );
   }
 
   if (isAuthLoading || !currentUser || isLoading) {
-    return <LoadingButton />;
+    return <LoadingButton className="w-full" />;
   }
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={disabled} className="bg-orange-500 flex-1">
+        <Button disabled={disabled} className="bg-orange-500 flex-1 w-full">
           Checkout
         </Button>
       </DialogTrigger>

@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import MobileNav from "./MobileNav";
 import MainNav from "./MainNav";
+import { DriverStep } from "./DriverJS/components/DriverStep";
+import { LANDING_PAGE_DRIVER_OPTIONS } from "@/config/DriverJS/LandingPage";
 
 const Header = () => {
   return (
@@ -15,9 +17,11 @@ const Header = () => {
         <div className="md:hidden">
           <MobileNav />
         </div>
-        <div className="hidden md:block">
+      <DriverStep {...LANDING_PAGE_DRIVER_OPTIONS['login-button']}>
+      <div className="hidden md:block">
           <MainNav />
         </div>
+      </DriverStep>
       </div>
     </header>
   );

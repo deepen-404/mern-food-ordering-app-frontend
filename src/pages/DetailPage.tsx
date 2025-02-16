@@ -1,16 +1,23 @@
-import { useCreateCheckoutSession } from "@/api/orderApi";
-import { useGetRestaurantById } from "@/api/restaurantApi";
-import CheckoutButton from "@/components/CheckoutButton";
-import MenuItem from "@/components/MenuItem";
-import OrderSummary from "@/components/OrderSummary";
-import RestaurantInfo from "@/components/RestaurantInfo";
-import { Card, CardFooter } from "@/components/ui/card";
-import { UserFormData } from "@/forms/user-profile-form/UserProfileForm";
-import { MenuItem as MenuItemT } from "@/types";
-import { AspectRatio } from "@radix-ui/react-aspect-ratio";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCreateCheckoutSession } from '@/api/orderApi';
+import { useGetRestaurantById } from '@/api/restaurantApi';
+import CheckoutButton from '@/components/CheckoutButton';
+import { DriverStep } from '@/components/DriverJS/components/DriverStep';
+import { DriverProvider } from '@/components/DriverJS/provider/DriverProvider';
+import MenuItem from '@/components/MenuItem';
+import OrderSummary from '@/components/OrderSummary';
+import RestaurantInfo from '@/components/RestaurantInfo';
+import { Card, CardFooter } from '@/components/ui/card';
+import { DEFAULT_DRIVER_OPTIONS } from '@/config/DriverJS/DefaultDriverJSOptions';
+import {
+  RESTAURANT_DETAIL_DRIVER_OPTIONS,
+  RESTAURANT_DETAIL_TUTORIAL_KEY,
+} from '@/config/DriverJS/RestaurantDetailPage';
+import { UserFormData } from '@/forms/user-profile-form/UserProfileForm';
+import { MenuItem as MenuItemT } from '@/types';
+import { AspectRatio } from '@radix-ui/react-aspect-ratio';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 export type CartItemT = {
   _id: string;
@@ -22,8 +29,7 @@ export type CartItemT = {
 const DetailPage = () => {
   const { restaurantId } = useParams();
   const { restaurant, isLoading } = useGetRestaurantById(restaurantId);
-  const { createCheckoutSession, isLoading: isCheckoutLoading } =
-    useCreateCheckoutSession();
+  const { createCheckoutSession, isLoading: isCheckoutLoading } = useCreateCheckoutSession();
 
   const [cartItems, setCartItems] = useState<CartItemT[]>(() => {
     const storedCartItems = sessionStorage.getItem(`cartItems-${restaurantId}`);
@@ -32,9 +38,7 @@ const DetailPage = () => {
 
   const addToCart = (menuItem: MenuItemT) => {
     setCartItems((prev) => {
-      const existingCartItem = prev.find(
-        (cartItem) => cartItem._id === menuItem._id
-      );
+      const existingCartItem = prev.find((cartItem) => cartItem._id === menuItem._id);
       let updatedCartItems;
       if (existingCartItem) {
         updatedCartItems = prev.map((cartItem) =>
@@ -54,10 +58,7 @@ const DetailPage = () => {
         ];
       }
 
-      sessionStorage.setItem(
-        `cartItems-${restaurantId}`,
-        JSON.stringify(updatedCartItems)
-      );
+      sessionStorage.setItem(`cartItems-${restaurantId}`, JSON.stringify(updatedCartItems));
 
       return updatedCartItems;
     });
@@ -67,10 +68,7 @@ const DetailPage = () => {
     setCartItems((prev) => {
       const updatedCartItems = prev.filter((item) => cartItem._id !== item._id);
 
-      sessionStorage.setItem(
-        `cartItems-${restaurantId}`,
-        JSON.stringify(updatedCartItems)
-      );
+      sessionStorage.setItem(`cartItems-${restaurantId}`, JSON.stringify(updatedCartItems));
 
       return updatedCartItems;
     });
@@ -112,44 +110,60 @@ const DetailPage = () => {
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <AspectRatio ratio={16 / 5}>
-        <img
-          src={restaurant.imageUrl}
-          className="rounded-md object-cover h-full w-full"
-        />
-      </AspectRatio>
-      <div className="grid md:grid-cols-[4fr_2fr] gap-5 md:px-16 lg:px-32">
-        <div className="flex flex-col gap-4">
-          <RestaurantInfo restaurant={restaurant} />
-          <span className="text-xl font-bold tracking-tight">Menu</span>
-          {restaurant.menuItems.map((menuItem) => (
-            <MenuItem
-              key={menuItem._id}
-              menuItem={menuItem}
-              addToCart={() => addToCart(menuItem)}
-            />
-          ))}
-        </div>
+    <DriverProvider
+      tutorialKey={RESTAURANT_DETAIL_TUTORIAL_KEY}
+      driverOptions={{ ...DEFAULT_DRIVER_OPTIONS }}
+    >
+      <div className="flex flex-col gap-10">
+        <AspectRatio ratio={16 / 5}>
+          <img src={restaurant.imageUrl} className="rounded-md object-cover h-full w-full" />
+        </AspectRatio>
+        <div className="grid md:grid-cols-[4fr_2fr] gap-5 md:px-16 lg:px-32">
+          <div className="flex flex-col gap-4">
+            <DriverStep {...RESTAURANT_DETAIL_DRIVER_OPTIONS['restaurant-info']}>
+              <RestaurantInfo restaurant={restaurant} />
+            </DriverStep>
+            <DriverStep
+              className="flex flex-col gap-4"
+              {...RESTAURANT_DETAIL_DRIVER_OPTIONS['menu-list']}
+            >
+              <span className="text-xl font-bold tracking-tight">Menu</span>
+              {restaurant.menuItems.map((menuItem) => (
+                <MenuItem
+                  key={menuItem._id}
+                  menuItem={menuItem}
+                  addToCart={() => addToCart(menuItem)}
+                />
+              ))}
+            </DriverStep>
+          </div>
 
-        <div>
-          <Card>
-            <OrderSummary
-              restaurant={restaurant}
-              cartItems={cartItems}
-              removeFromCart={removeFromCart}
-            />
-            <CardFooter>
-              <CheckoutButton
-                isLoading={isCheckoutLoading}
-                disabled={cartItems.length === 0}
-                onCheckout={onCheckout}
-              />
-            </CardFooter>
-          </Card>
+          <div>
+            <Card>
+              <DriverStep {...RESTAURANT_DETAIL_DRIVER_OPTIONS['order-summary']}>
+                <OrderSummary
+                  restaurant={restaurant}
+                  cartItems={cartItems}
+                  removeFromCart={removeFromCart}
+                />
+              </DriverStep>
+              <CardFooter>
+                <DriverStep
+                  className="w-full"
+                  {...RESTAURANT_DETAIL_DRIVER_OPTIONS['checkout-button']}
+                >
+                  <CheckoutButton
+                    isLoading={isCheckoutLoading}
+                    disabled={cartItems.length === 0}
+                    onCheckout={onCheckout}
+                  />
+                </DriverStep>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </DriverProvider>
   );
 };
 

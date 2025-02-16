@@ -3,6 +3,8 @@ import { Label } from "./ui/label";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { ChangeEvent } from "react";
 import { Button } from "./ui/button";
+import { RESTAURANT_PAGE_DRIVER_OPTIONS } from "@/config/DriverJS/RestaurantListPage";
+import { DriverStep } from "./DriverJS/components/DriverStep";
 
 type CusinesFilterPropsT = {
   onChange: (cuisines: string[]) => void;
@@ -29,7 +31,7 @@ const CuisinesFilter = ({
     onChange(newCusinesList);
   };
   return (
-    <>
+    <DriverStep {...RESTAURANT_PAGE_DRIVER_OPTIONS['filter-cuisines']}>
       <div className="flex justify-between items-center px-2">
         <div className="font-semibold mb-2">Filter by cuisines</div>
         <div
@@ -85,7 +87,7 @@ const CuisinesFilter = ({
           )}
         </Button>
       </div>
-    </>
+    </DriverStep>
   );
 };
 
