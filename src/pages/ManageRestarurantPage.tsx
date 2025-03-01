@@ -6,12 +6,12 @@ import {
 } from '@/api/myRestaurantApi';
 import { DriverProvider } from '@/components/DriverJS/provider/DriverProvider';
 import OrderItemCard from '@/components/OrderItemCard';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DEFAULT_DRIVER_OPTIONS } from '@/config/DriverJS/DefaultDriverJSOptions';
 import { ORDER_MANAGEMENT_TUTORIAL_KEY } from '@/config/DriverJS/OrderManagementPage';
 import ManageRestaurantForms from '@/forms/mange-restarurant-form/ManageRestaurantForm';
-import { TabsContent } from '@radix-ui/react-tabs';
 import { Loader2 } from 'lucide-react';
+import SalesDashboard from '@/components/Reports/SalesReport/SalesDashboard';
 
 const ManageRestaurantPage = () => {
   const { createRestaurant, isLoading: isCreateLoading } = useCreateMyRestaurant();
@@ -34,6 +34,7 @@ const ManageRestaurantPage = () => {
       <TabsList className="mb-4">
         <TabsTrigger value="orders">Orders</TabsTrigger>
         <TabsTrigger value="manage-restaurant">Manage Restaurant</TabsTrigger>
+        <TabsTrigger value="sales-reports">Sales Reports</TabsTrigger>
       </TabsList>
       <TabsContent
         value="orders"
@@ -55,6 +56,13 @@ const ManageRestaurantPage = () => {
           onSave={isEditing ? updateRestaurant : createRestaurant}
           isLoading={isCreateLoading || isUpdateLoading}
         />
+      </TabsContent>
+
+      <TabsContent
+        value="sales-reports"
+        className="bg-gray-50 border border-gray-900 shadow-sm p-10 rounded-lg"
+      >
+        <SalesDashboard restaurant={restaurant} />
       </TabsContent>
     </Tabs>
   );

@@ -1,8 +1,8 @@
-import { useGetMyOrders } from "@/api/orderApi";
-import OrderStatusDetail from "@/components/OrderStatusDetail";
-import OrderStatusHeader from "@/components/OrderStatusHeader";
-import { AspectRatio } from "@radix-ui/react-aspect-ratio";
-import { Loader2 } from "lucide-react";
+import { useGetMyOrders } from '@/api/orderApi';
+import OrderStatusDetail from '@/components/OrderStatusDetail';
+import OrderStatusHeader from '@/components/OrderStatusHeader';
+import { AspectRatio } from '@radix-ui/react-aspect-ratio';
+import { Loader2 } from 'lucide-react';
 
 const OrderStatusPage = () => {
   const { orders, isLoading } = useGetMyOrders();
@@ -16,7 +16,7 @@ const OrderStatusPage = () => {
   }
 
   if (!orders || orders.length === 0) {
-    return "No orders found";
+    return 'No orders found';
   }
 
   return (
