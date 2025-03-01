@@ -9,8 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TrendingUp, ShoppingCart, DollarSign, Loader2 } from 'lucide-react';
-import { subDays } from 'date-fns';
+import {
+  TrendingUp,
+  ShoppingCart,
+  DollarSign,
+  Loader2,
+  FileSpreadsheet,
+  FileDown,
+} from 'lucide-react';
+import { subDays, format } from 'date-fns';
 import {
   BarChart,
   Bar,
@@ -25,8 +32,17 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { DatePickerWithRange } from './DatePickerWithange';
 import { Restaurant } from '@/types';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
+import { DatePickerWithRange } from './DatePickerWithange';
 
 // Define the date range picker input type
 interface DateRangePickerInputs {
@@ -44,6 +60,7 @@ const SalesDashboard = ({ restaurant }: { restaurant?: Restaurant }) => {
   });
 
   const [periodType, setPeriodType] = useState<PeriodT>('daily');
+  const [exportLoading, setExportLoading] = useState<boolean>(false);
 
   const { salesData, isLoading, isError } = useGetSalesPerformance({
     restaurantId: restaurant?._id ?? '',
@@ -90,6 +107,248 @@ const SalesDashboard = ({ restaurant }: { restaurant?: Restaurant }) => {
     return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
   };
 
+  // Get a clean filename
+  const getCleanFilename = () => {
+    const restaurantName = restaurant?.restaurantName
+      ? restaurant.restaurantName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
+      : 'restaurant';
+    const fromDate = format(dateRange.from, 'yyyy-MM-dd');
+    const toDate = format(dateRange.to, 'yyyy-MM-dd');
+    return `${restaurantName}_sales_report_${fromDate}_to_${toDate}`;
+  };
+
+  // Export to Excel
+  const exportToExcel = () => {
+    setExportLoading(true);
+    try {
+      const workbook = XLSX.utils.book_new();
+
+      // Summary worksheet
+      const summaryData = [
+        ['Total Revenue', formatCurrency(salesData?.summary.totalRevenue || 0)],
+        ['Total Orders', salesData?.summary.totalOrders || 0],
+        ['Average Order Value', formatCurrency(salesData?.summary.averageOrderValue || 0)],
+      ];
+      const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(workbook, summaryWs, 'Summary');
+
+      // Revenue by period worksheet
+      const periodData = salesData?.revenueByPeriod[periodType] || [];
+      const periodHeader =
+        periodType === 'daily'
+          ? ['Date', 'Revenue']
+          : periodType === 'weekly'
+            ? ['Week', 'Revenue']
+            : ['Month', 'Revenue'];
+
+      const periodRows = periodData.map((item) => {
+        const key = periodType === 'daily' ? 'date' : periodType === 'weekly' ? 'week' : 'month';
+        return [item?.[key], item.revenue];
+      });
+
+      const periodWs = XLSX.utils.aoa_to_sheet([periodHeader, ...periodRows]);
+      XLSX.utils.book_append_sheet(workbook, periodWs, 'Revenue By Period');
+
+      // Popular items worksheet
+      const popularItemsHeader = ['Item Name', 'Order Count', 'Revenue'];
+      const popularItemsRows =
+        salesData?.popularItems.map((item) => [item.name, item.count, item.revenue]) || [];
+
+      const popularItemsWs = XLSX.utils.aoa_to_sheet([popularItemsHeader, ...popularItemsRows]);
+      XLSX.utils.book_append_sheet(workbook, popularItemsWs, 'Popular Items');
+
+      // Peak times - By hour worksheet
+      const byHourHeader = ['Hour', 'Order Count', 'Revenue'];
+      const byHourRows =
+        salesData?.peakTimes.byHour.map((item) => [
+          formatHour(item.hour),
+          item.count,
+          item.revenue,
+        ]) || [];
+
+      const byHourWs = XLSX.utils.aoa_to_sheet([byHourHeader, ...byHourRows]);
+      XLSX.utils.book_append_sheet(workbook, byHourWs, 'Orders By Hour');
+
+      // Peak times - By day worksheet
+      const byDayHeader = ['Day', 'Order Count', 'Revenue'];
+      const byDayRows =
+        salesData?.peakTimes.byDay.map((item) => [item.day, item.count, item.revenue]) || [];
+
+      const byDayWs = XLSX.utils.aoa_to_sheet([byDayHeader, ...byDayRows]);
+      XLSX.utils.book_append_sheet(workbook, byDayWs, 'Orders By Day');
+
+      // Generate filename and save
+      const filename = `${getCleanFilename()}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+      toast.success('Excel report exported successfully');
+    } catch (error) {
+      console.error('Failed to export Excel file:', error);
+      toast.error('Failed to export Excel file');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // Export to PDF
+  const exportToPDF = () => {
+    setExportLoading(true);
+
+    // Import jsPDF dynamically to avoid server-side rendering issues
+    import('jspdf')
+      .then(async ({ default: jsPDF }) => {
+        try {
+          // Import jspdf-autotable dynamically
+          const autoTable = (await import('jspdf-autotable')).default;
+
+          // Create a new PDF document
+          const doc = new jsPDF();
+          const dateRangeStr = `${format(dateRange.from, 'MMM dd, yyyy')} to ${format(dateRange.to, 'MMM dd, yyyy')}`;
+
+          // Add title and restaurant info
+          doc.setFontSize(18);
+          doc.text(`Sales Report - ${restaurant?.restaurantName || 'Restaurant'}`, 14, 20);
+          doc.setFontSize(12);
+          doc.text(`Period: ${dateRangeStr}`, 14, 30);
+          doc.text(
+            `Report Type: ${periodType.charAt(0).toUpperCase() + periodType.slice(1)}`,
+            14,
+            40
+          );
+
+          // Add summary section
+          doc.setFontSize(14);
+          doc.text('Summary', 14, 55);
+
+          const summaryData = [
+            ['Metric', 'Value'],
+            ['Total Revenue', formatCurrency(salesData?.summary.totalRevenue || 0)],
+            ['Total Orders', salesData?.summary.totalOrders?.toString() || '0'],
+            ['Average Order Value', formatCurrency(salesData?.summary.averageOrderValue || 0)],
+          ];
+
+          autoTable(doc, {
+            startY: 60,
+            head: [summaryData[0]],
+            body: summaryData.slice(1),
+            theme: 'grid',
+          });
+
+          // Add popular items section
+          doc.setFontSize(14);
+          doc.text('Popular Items', 14, doc.lastAutoTable.finalY + 15);
+
+          const popularItemsData = [
+            ['Item Name', 'Order Count', 'Revenue'],
+            ...(salesData?.popularItems
+              .slice(0, 10)
+              .map((item) => [item.name, item.count.toString(), formatCurrency(item.revenue)]) ||
+              []),
+          ];
+
+          autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [popularItemsData[0]],
+            body: popularItemsData.slice(1),
+            theme: 'grid',
+          });
+
+          // Add peak times section
+          doc.setFontSize(14);
+          doc.text('Peak Times by Day of Week', 14, doc.lastAutoTable.finalY + 15);
+
+          const peakTimesByDayData = [
+            ['Day', 'Order Count', 'Revenue'],
+            ...(salesData?.peakTimes.byDay.map((item) => [
+              item.day,
+              item.count.toString(),
+              formatCurrency(item.revenue),
+            ]) || []),
+          ];
+
+          autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 20,
+            head: [peakTimesByDayData[0]],
+            body: peakTimesByDayData.slice(1),
+            theme: 'grid',
+          });
+
+          // Add revenue data
+          const revenueY = doc.lastAutoTable.finalY;
+
+          if (revenueY > 220) {
+            // Add a new page if there's not enough space
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.text(
+              `Revenue By ${periodType.charAt(0).toUpperCase() + periodType.slice(1)}`,
+              14,
+              20
+            );
+
+            const revenueData = [
+              [
+                periodType === 'daily' ? 'Date' : periodType === 'weekly' ? 'Week' : 'Month',
+                'Revenue',
+              ],
+              ...(salesData?.revenueByPeriod[periodType].map((item) => {
+                const key =
+                  periodType === 'daily' ? 'date' : periodType === 'weekly' ? 'week' : 'month';
+                return [item[key], formatCurrency(item.revenue)];
+              }) || []),
+            ];
+
+            autoTable(doc, {
+              startY: 25,
+              head: [revenueData[0]],
+              body: revenueData.slice(1),
+              theme: 'grid',
+            });
+          } else {
+            doc.setFontSize(14);
+            doc.text(
+              `Revenue By ${periodType.charAt(0).toUpperCase() + periodType.slice(1)}`,
+              14,
+              doc.lastAutoTable.finalY + 15
+            );
+
+            const revenueData = [
+              [
+                periodType === 'daily' ? 'Date' : periodType === 'weekly' ? 'Week' : 'Month',
+                'Revenue',
+              ],
+              ...(salesData?.revenueByPeriod[periodType].map((item) => {
+                const key =
+                  periodType === 'daily' ? 'date' : periodType === 'weekly' ? 'week' : 'month';
+                return [item[key], formatCurrency(item.revenue)];
+              }) || []),
+            ];
+
+            autoTable(doc, {
+              startY: doc.lastAutoTable.finalY + 20,
+              head: [revenueData[0]],
+              body: revenueData.slice(1),
+              theme: 'grid',
+            });
+          }
+
+          // Generate filename and save
+          const filename = `${getCleanFilename()}.pdf`;
+          doc.save(filename);
+          toast.success('PDF report exported successfully');
+        } catch (error) {
+          console.error('Failed to export PDF file:', error);
+          toast.error('Failed to export PDF file');
+        } finally {
+          setExportLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load jsPDF:', error);
+        toast.error('Failed to load PDF export library');
+        setExportLoading(false);
+      });
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -115,6 +374,29 @@ const SalesDashboard = ({ restaurant }: { restaurant?: Restaurant }) => {
               <SelectItem value="monthly">Monthly</SelectItem>
             </SelectContent>
           </Select>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={exportLoading}>
+                {exportLoading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <FileDown className="h-4 w-4 mr-2" />
+                )}
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={exportToPDF}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportToExcel}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as Excel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
