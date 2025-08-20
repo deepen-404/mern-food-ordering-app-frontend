@@ -1,14 +1,14 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem } from "./ui/form";
-import { Search } from "lucide-react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { useEffect } from "react";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem } from './ui/form';
+import { Search } from 'lucide-react';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
-  searchQuery: z.string().min(1, "Restaurant name is required"),
+  searchQuery: z.string().min(1, 'Restaurant name is required'),
 });
 
 export type SearchForm = z.infer<typeof formSchema>;
@@ -20,12 +20,7 @@ type SearchBarPropsT = {
   searchQuery?: string;
 };
 
-const SearchBar: React.FC<SearchBarPropsT> = ({
-  onSubmit,
-  placeholder,
-  onReset,
-  searchQuery,
-}) => {
+const SearchBar: React.FC<SearchBarPropsT> = ({ onSubmit, placeholder, onReset, searchQuery }) => {
   const form = useForm<SearchForm>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,7 +34,7 @@ const SearchBar: React.FC<SearchBarPropsT> = ({
 
   const handleReset = () => {
     form.reset({
-      searchQuery: "",
+      searchQuery: '',
     });
 
     if (onReset) {
@@ -47,25 +42,15 @@ const SearchBar: React.FC<SearchBarPropsT> = ({
     }
   };
 
-  useEffect(() => {
-    console.log("the new error is: ", form.formState.errors);
-  }, [form.formState.errors]);
-
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className={`flex items-center gap-3 w-full mx-auto justify-between flex-row border-2 rounded-full p-3 ${
-          form.formState.errors.searchQuery
-            ? "border-red-500"
-            : "border-gray-300"
+          form.formState.errors.searchQuery ? 'border-red-500' : 'border-gray-300'
         }`}
       >
-        <Search
-          strokeWidth={2.5}
-          size={20}
-          className="ml-1 text-orange-500 hidden md:block"
-        />
+        <Search strokeWidth={2.5} size={20} className="ml-1 text-orange-500 hidden md:block" />
         <FormField
           control={form.control}
           name="searchQuery"
@@ -82,12 +67,7 @@ const SearchBar: React.FC<SearchBarPropsT> = ({
             </FormItem>
           )}
         />
-        <Button
-          onClick={handleReset}
-          type="button"
-          variant="outline"
-          className="rounded-full"
-        >
+        <Button onClick={handleReset} type="button" variant="outline" className="rounded-full">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="13"
@@ -104,10 +84,7 @@ const SearchBar: React.FC<SearchBarPropsT> = ({
             <path d="m6 6 12 12" />
           </svg>
         </Button>
-        <Button
-          type="submit"
-          className="rounded-full bg-orange-500 text-xs md:text-sm "
-        >
+        <Button type="submit" className="rounded-full bg-orange-500 text-xs md:text-sm ">
           Search
         </Button>
       </form>
